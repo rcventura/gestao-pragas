@@ -1,24 +1,14 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   Building2,
   CircleDollarSign,
-  LayoutDashboard,
-  LogOut,
-  Users,
 } from "lucide-react";
-import { signOut } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/server";
+import { DashboardSidebar } from "./dashboard-sidebar";
 
 const indicators = [
   { label: "Clientes Ativos", value: "0", icon: Building2 },
   { label: "Faturas atrasadas", value: "0", icon: CircleDollarSign },
-];
-
-const navigationItems = [
-  { label: "Dashboard", icon: LayoutDashboard, active: true },
-  { label: "Clientes", icon: Users },
-  { label: "Financeiro", icon: CircleDollarSign },
 ];
 
 export default async function DashboardPage() {
@@ -38,69 +28,9 @@ export default async function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-[#f4f1eb] text-[#1b2823]">
-      <div className="flex min-h-screen">
-        <aside className="hidden w-64 shrink-0 flex-col border-r border-[#1b2823]/10 bg-[#eeeae1] px-4 py-7 lg:flex">
-          <Link className="border-b border-[#1b2823]/10 px-3 pb-6" href="/">
-            <span className="block text-sm font-semibold tracking-[0.16em] uppercase">Gestão de Pragas</span>
-            <span className="mt-2 block text-xs text-[#1b2823]/50">Sistema operacional</span>
-          </Link>
-          <nav className="mt-10 flex-1 space-y-1 text-sm" aria-label="Navegação principal">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <button
-                  className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors ${item.active ? "bg-[#1b2823] font-medium text-white shadow-sm" : "text-[#1b2823]/60 hover:bg-white/70 hover:text-[#1b2823]"}`}
-                  key={item.label}
-                  type="button"
-                >
-                  <Icon size={18} strokeWidth={1.8} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-          <div className="border-t border-[#1b2823]/10 pt-3">
-            <form action={signOut}>
-              <button className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-[#1b2823]/60 transition-colors hover:bg-[#b42318] hover:text-white" type="submit">
-                <LogOut size={18} strokeWidth={1.8} />
-                <span>Sair</span>
-              </button>
-            </form>
-            <div className="mt-2 border-t border-[#1b2823]/10 px-3 pt-2">
-              <p className="truncate text-sm font-medium text-[#1b2823]">{userName}</p>
-              <p className="mt-1 truncate text-xs text-[#1b2823]/50">{user.email}</p>
-            </div>
-          </div>
-        </aside>
+      <div className="flex min-h-screen flex-col lg:flex-row">
+        <DashboardSidebar activePath="/dashboard" email={user.email ?? ""} userName={userName} />
         <section className="min-w-0 flex-1 px-6 py-8 sm:px-10 lg:px-12">
-          <details className="mb-6 rounded-2xl border border-[#1b2823]/10 bg-[#eeeae1] p-3 lg:hidden">
-            <summary className="cursor-pointer list-none rounded-xl px-3 py-2 text-sm font-semibold text-[#1b2823]">
-              Menu
-            </summary>
-            <nav className="mt-2 space-y-1 border-t border-[#1b2823]/10 pt-3" aria-label="Navegação principal">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-
-                return (
-                  <button
-                    className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition-colors ${item.active ? "bg-[#1b2823] font-medium text-white" : "text-[#1b2823]/60 hover:bg-white/70 hover:text-[#1b2823]"}`}
-                    key={item.label}
-                    type="button"
-                  >
-                    <Icon size={18} strokeWidth={1.8} />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-              <form className="border-t border-[#1b2823]/10 pt-2" action={signOut}>
-                <button className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-[#1b2823]/60 transition-colors hover:bg-[#b42318] hover:text-white" type="submit">
-                  <LogOut size={18} strokeWidth={1.8} />
-                  <span>Sair</span>
-                </button>
-              </form>
-            </nav>
-          </details>
           <header className="flex items-start justify-between gap-4 border-b border-[#1b2823]/10 pb-8">
             <div>
               <p className="text-sm text-[#b45432]">Painel administrativo</p>
