@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/auth/authorization";
 
 function getValue(formData: FormData, field: string) {
   const value = formData.get(field);
@@ -20,6 +20,7 @@ function createSlug(name: string) {
 }
 
 export async function createOrganization(formData: FormData) {
+  const { supabase } = await requireRole(["super_admin"]);
   const name = getValue(formData, "name");
   const email = getValue(formData, "email").toLowerCase();
   const clientType = getValue(formData, "client_type");
@@ -32,7 +33,11 @@ export async function createOrganization(formData: FormData) {
   const city = getValue(formData, "city");
   const neighborhood = getValue(formData, "neighborhood");
 
-  if (!name || !email || !clientType || !document || !phone || !postalCode || !street || !streetNumber || !state || !city || !neighborhood) {
+  if (name.length > 160 || email.length > 320 || document.length > 32 || phone.length > 32 || postalCode.length > 16 || street.length > 160 || streetNumber.length > 32 || state.length !== 2 || city.length > 120 || neighborhood.length > 120) {
+    redirect(`/dashboard/clients/new?error=${encodeURIComponent("Revise os dados informados.")}`);
+  }
+
+  if (!name || !email || !clientType || !document || !phone || !postalCode || !street || !streetNumber || !state || !city || !neighborhood || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !/^[A-Z]{2}$/.test(state)) {
     redirect(`/dashboard/clients/new?error=${encodeURIComponent("Preencha todos os campos obrigatórios.")}`);
   }
 
@@ -40,7 +45,6 @@ export async function createOrganization(formData: FormData) {
     redirect(`/dashboard/clients/new?error=${encodeURIComponent("Selecione um tipo de cliente válido.")}`);
   }
 
-  const supabase = await createClient();
   const { error } = await supabase.from("organizations").insert({
     name,
     email,

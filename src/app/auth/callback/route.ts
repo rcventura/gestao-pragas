@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSafeRedirectPath } from "@/lib/auth/authorization";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -11,5 +12,5 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  return NextResponse.redirect(new URL(next.startsWith("/") ? next : "/login", requestUrl.origin));
+  return NextResponse.redirect(new URL(getSafeRedirectPath(next, "/login"), requestUrl.origin));
 }

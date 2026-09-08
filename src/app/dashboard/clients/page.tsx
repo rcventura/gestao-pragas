@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/auth/authorization";
 import { DashboardSidebar } from "../dashboard-sidebar";
 import { ClientToast } from "./client-toast";
 import { ClientsList } from "./clients-list";
@@ -9,29 +8,39 @@ import { ClientsList } from "./clients-list";
 type ClientsPageProps = {
   searchParams: Promise<{
     success?: string;
+    q?: string;
+    status?: string;
+    page?: string;
   }>;
 };
 
+const PAGE_SIZE = 25;
+
 export default async function ClientsPage({ searchParams }: ClientsPageProps) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", user.id)
-    .maybeSingle();
-  const userName = profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || "Usuário";
+  const { supabase, user, fullName } = await requireRole(["super_admin", "admin", "operator"]);
+  const userName = fullName || user.user_metadata?.full_name || user.user_metadata?.name || "Usuário";
 
   const params = await searchParams;
-  const { data: organizations } = await supabase
+  const query = (params.q || "").trim().slice(0, 80);
+  const status = params.status === "inactive" ? "inactive" : "active";
+  const requestedPage = Number.parseInt(params.page || "1", 10);
+  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? Math.min(requestedPage, 100_000) : 1;
+  const searchTerm = query.replace(/[%,()_*]/g, " ").trim();
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+  let organizationsQuery = supabase
     .from("organizations")
-    .select("id, name, email, slug, active, created_at")
-    .order("name");
+    .select("id, name, email, slug, active, created_at", { count: "exact" })
+    .eq("active", status === "active")
+    .order("name")
+    .range(from, to);
+
+  if (searchTerm) {
+    organizationsQuery = organizationsQuery.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,slug.ilike.%${searchTerm}%`);
+  }
+
+  const { data: filteredOrganizations, count } = await organizationsQuery;
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
   return (
     <main className="flex min-h-screen flex-col bg-[#f4f1eb] text-[#1b2823] lg:flex-row">
@@ -52,7 +61,13 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
           </Link>
         </header>
 
-        <ClientsList organizations={organizations || []} />
+        <ClientsList
+          organizations={filteredOrganizations || []}
+          page={Math.min(page, totalPages)}
+          query={query}
+          showInactive={status === "inactive"}
+          totalPages={totalPages}
+        />
       </div>
       </section>
     </main>

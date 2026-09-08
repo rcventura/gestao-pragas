@@ -45,6 +45,8 @@ Interface responsiva para consultar serviços atribuídos, executar checklists, 
 
 Todas as tabelas de negócio terão `organization_id`. As políticas RLS serão aplicadas no banco, e não somente na interface. O servidor também validará o perfil e o vínculo do usuário antes de executar operações sensíveis.
 
+Login e recuperação de senha devem usar os limites nativos do Supabase Auth e limites adicionais no edge ou gateway da aplicação por IP, conta e janela de tempo. A aplicação mantém respostas genéricas para não revelar se um e-mail existe; a configuração de produção deve monitorar falhas de login, solicitações de recuperação e rejeições por limite.
+
 ## Módulos previstos
 
 ```text

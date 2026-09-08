@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/auth/authorization";
 import { DashboardSidebar } from "../../dashboard-sidebar";
 import { ClientToast } from "../client-toast";
 import { NewClientForm } from "./new-client-form";
@@ -12,19 +11,8 @@ type NewClientPageProps = {
 
 export default async function NewClientPage({ searchParams }: NewClientPageProps) {
   const params = await searchParams;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", user.id)
-    .maybeSingle();
-  const userName = profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || "Usuário";
+  const { user, fullName } = await requireRole(["super_admin"]);
+  const userName = fullName || user.user_metadata?.full_name || user.user_metadata?.name || "Usuário";
 
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-[#f4f1eb] text-[#1b2823] lg:flex-row">

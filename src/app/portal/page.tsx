@@ -1,15 +1,9 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { signOut } from "@/app/actions/auth";
-import { createClient } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/auth/authorization";
 
 export default async function ClientPortalPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  await requireRole(["admin", "operator"]);
 
   return (
     <main className="min-h-screen bg-[#e8efe4] px-6 py-8 text-[#1b2823] sm:px-10">

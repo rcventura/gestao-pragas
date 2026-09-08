@@ -1,25 +1,13 @@
-import { redirect } from "next/navigation";
 import {
   Building2,
   CircleDollarSign,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/auth/authorization";
 import { DashboardSidebar } from "./dashboard-sidebar";
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", user.id)
-    .maybeSingle();
-  const userName = profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || "Usuário";
+  const { supabase, user, fullName } = await requireRole(["super_admin", "admin", "operator"]);
+  const userName = fullName || user.user_metadata?.full_name || user.user_metadata?.name || "Usuário";
   const { count: activeClientsCount } = await supabase
     .from("organizations")
     .select("id", { count: "exact", head: true })

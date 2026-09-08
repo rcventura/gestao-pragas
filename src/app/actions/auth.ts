@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getSafeRedirectPath } from "@/lib/auth/authorization";
 
 export type AuthFormState = {
   error?: string;
@@ -20,9 +21,9 @@ export async function signIn(_state: AuthFormState, formData: FormData): Promise
   const email = getStringValue(formData, "email");
   const password = getStringValue(formData, "password");
   const mode = getStringValue(formData, "mode") as LoginMode;
-  const next = getStringValue(formData, "next") || (mode === "admin" ? "/dashboard" : "/portal");
+  const next = getSafeRedirectPath(getStringValue(formData, "next"), mode === "admin" ? "/dashboard" : "/portal");
 
-  if (!email || !password) {
+  if (!email || !password || (mode !== "admin" && mode !== "client")) {
     return { error: "Informe seu e-mail e sua senha." };
   }
 
@@ -35,12 +36,12 @@ export async function signIn(_state: AuthFormState, formData: FormData): Promise
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, active")
     .eq("id", (await supabase.auth.getUser()).data.user?.id ?? "")
     .maybeSingle();
   const hasAccess = mode === "admin"
-    ? profile?.role === "super_admin"
-    : profile?.role === "admin" || profile?.role === "operator";
+    ? profile?.active === true && profile.role === "super_admin"
+    : profile?.active === true && (profile.role === "admin" || profile.role === "operator");
 
   if (!hasAccess) {
     await supabase.auth.signOut({ scope: "local" });
@@ -51,7 +52,7 @@ export async function signIn(_state: AuthFormState, formData: FormData): Promise
     };
   }
 
-  redirect(next.startsWith("/") ? next : "/dashboard");
+  redirect(next);
 }
 
 export async function requestPasswordReset(_state: AuthFormState, formData: FormData): Promise<AuthFormState> {
