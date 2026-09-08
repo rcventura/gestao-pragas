@@ -19,7 +19,7 @@ export default async function ClientPortalPage() {
           <div className="flex items-center gap-3">
             <span className="rounded-full bg-white/70 px-4 py-2 text-xs text-[#1b2823]/60">Portal do cliente</span>
             <form action={signOut}>
-              <button className="rounded-full border border-[#1b2823]/20 px-4 py-2 text-xs" type="submit">Sair</button>
+              <button className="cursor-pointer rounded-full border border-[#1b2823]/20 px-4 py-2 text-xs transition-colors hover:bg-[#1b2823] hover:text-white" type="submit">Sair</button>
             </form>
           </div>
         </header>

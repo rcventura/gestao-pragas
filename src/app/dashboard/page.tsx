@@ -38,7 +38,7 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-3">
               <Link className="rounded-full border border-[#1b2823]/20 px-4 py-2 text-sm" href="/portal">Ver portal do cliente</Link>
               <form action={signOut}>
-                <button className="rounded-full border border-[#1b2823]/20 px-4 py-2 text-sm" type="submit">Sair</button>
+                <button className="cursor-pointer rounded-full border border-[#1b2823]/20 px-4 py-2 text-sm transition-colors hover:bg-[#1b2823] hover:text-white" type="submit">Sair</button>
               </form>
             </div>
           </header>

@@ -1,12 +1,15 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthFormState = {
   error?: string;
   message?: string;
 };
+
+export type LoginMode = "admin" | "client";
 
 function getStringValue(formData: FormData, field: string) {
   const value = formData.get(field);
@@ -16,7 +19,8 @@ function getStringValue(formData: FormData, field: string) {
 export async function signIn(_state: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const email = getStringValue(formData, "email");
   const password = getStringValue(formData, "password");
-  const next = getStringValue(formData, "next") || "/dashboard";
+  const mode = getStringValue(formData, "mode") as LoginMode;
+  const next = getStringValue(formData, "next") || (mode === "admin" ? "/dashboard" : "/portal");
 
   if (!email || !password) {
     return { error: "Informe seu e-mail e sua senha." };
@@ -27,6 +31,24 @@ export async function signIn(_state: AuthFormState, formData: FormData): Promise
 
   if (error) {
     return { error: "E-mail ou senha inválidos." };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", (await supabase.auth.getUser()).data.user?.id ?? "")
+    .maybeSingle();
+  const hasAccess = mode === "admin"
+    ? profile?.role === "super_admin"
+    : profile?.role === "admin" || profile?.role === "operator";
+
+  if (!hasAccess) {
+    await supabase.auth.signOut({ scope: "local" });
+    return {
+      error: mode === "admin"
+        ? "Esta entrada é exclusiva para superadministradores."
+        : "Esta entrada é exclusiva para administradores e operadores.",
+    };
   }
 
   redirect(next.startsWith("/") ? next : "/dashboard");
@@ -71,6 +93,9 @@ export async function updatePassword(_state: AuthFormState, formData: FormData):
 
 export async function signOut() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  await supabase.auth.signOut({ scope: "local" });
+  revalidatePath("/dashboard");
+  revalidatePath("/portal");
+  revalidatePath("/login");
   redirect("/login");
 }
