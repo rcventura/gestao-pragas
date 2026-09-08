@@ -74,6 +74,33 @@ export default async function DashboardPage() {
           </div>
         </aside>
         <section className="min-w-0 flex-1 px-6 py-8 sm:px-10 lg:px-12">
+          <details className="mb-6 rounded-2xl border border-[#1b2823]/10 bg-[#eeeae1] p-3 lg:hidden">
+            <summary className="cursor-pointer list-none rounded-xl px-3 py-2 text-sm font-semibold text-[#1b2823]">
+              Menu
+            </summary>
+            <nav className="mt-2 space-y-1 border-t border-[#1b2823]/10 pt-3" aria-label="Navegação principal">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <button
+                    className={`flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition-colors ${item.active ? "bg-[#1b2823] font-medium text-white" : "text-[#1b2823]/60 hover:bg-white/70 hover:text-[#1b2823]"}`}
+                    key={item.label}
+                    type="button"
+                  >
+                    <Icon size={18} strokeWidth={1.8} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+              <form className="border-t border-[#1b2823]/10 pt-2" action={signOut}>
+                <button className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-[#1b2823]/60 transition-colors hover:bg-[#b42318] hover:text-white" type="submit">
+                  <LogOut size={18} strokeWidth={1.8} />
+                  <span>Sair</span>
+                </button>
+              </form>
+            </nav>
+          </details>
           <header className="flex items-start justify-between gap-4 border-b border-[#1b2823]/10 pb-8">
             <div>
               <p className="text-sm text-[#b45432]">Painel administrativo</p>
