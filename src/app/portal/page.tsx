@@ -1,12 +1,27 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { signOut } from "@/app/actions/auth";
+import { createClient } from "@/lib/supabase/server";
 
-export default function ClientPortalPage() {
+export default async function ClientPortalPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
   return (
     <main className="min-h-screen bg-[#e8efe4] px-6 py-8 text-[#1b2823] sm:px-10">
       <div className="mx-auto max-w-5xl">
         <header className="flex items-center justify-between border-b border-[#1b2823]/15 pb-6">
           <Link className="text-sm font-semibold tracking-[0.16em] uppercase" href="/">Gestão de Pragas</Link>
-          <span className="rounded-full bg-white/70 px-4 py-2 text-xs text-[#1b2823]/60">Portal do cliente</span>
+          <div className="flex items-center gap-3">
+            <span className="rounded-full bg-white/70 px-4 py-2 text-xs text-[#1b2823]/60">Portal do cliente</span>
+            <form action={signOut}>
+              <button className="rounded-full border border-[#1b2823]/20 px-4 py-2 text-xs" type="submit">Sair</button>
+            </form>
+          </div>
         </header>
         <section className="py-16 sm:py-24">
           <p className="text-sm font-semibold tracking-[0.18em] text-[#b45432] uppercase">Área da sua empresa</p>

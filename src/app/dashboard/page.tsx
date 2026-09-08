@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { signOut } from "@/app/actions/auth";
+import { createClient } from "@/lib/supabase/server";
 
 const indicators = [
   { label: "OS abertas", value: "00", detail: "Aguardando atendimento" },
@@ -6,7 +9,14 @@ const indicators = [
   { label: "Clientes", value: "00", detail: "Cadastros ativos" },
 ];
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
   return (
     <main className="min-h-screen bg-[#f4f1eb] text-[#1b2823]">
       <div className="mx-auto flex min-h-screen max-w-7xl">
@@ -25,7 +35,12 @@ export default function DashboardPage() {
               <p className="text-sm text-[#b45432]">Painel administrativo</p>
               <h1 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">Bom dia, administrador.</h1>
             </div>
-            <Link className="rounded-full border border-[#1b2823]/20 px-4 py-2 text-sm" href="/portal">Ver portal do cliente</Link>
+            <div className="flex items-center gap-3">
+              <Link className="rounded-full border border-[#1b2823]/20 px-4 py-2 text-sm" href="/portal">Ver portal do cliente</Link>
+              <form action={signOut}>
+                <button className="rounded-full border border-[#1b2823]/20 px-4 py-2 text-sm" type="submit">Sair</button>
+              </form>
+            </div>
           </header>
           <div className="grid gap-4 py-8 md:grid-cols-3">
             {indicators.map((indicator) => (
