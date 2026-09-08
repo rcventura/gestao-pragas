@@ -6,11 +6,6 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { DashboardSidebar } from "./dashboard-sidebar";
 
-const indicators = [
-  { label: "Clientes Ativos", value: "0", icon: Building2 },
-  { label: "Faturas atrasadas", value: "0", icon: CircleDollarSign },
-];
-
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -25,6 +20,14 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .maybeSingle();
   const userName = profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || "Usuário";
+  const { count: activeClientsCount } = await supabase
+    .from("organizations")
+    .select("id", { count: "exact", head: true })
+    .eq("active", true);
+  const indicators = [
+    { label: "Clientes Ativos", value: String(activeClientsCount ?? 0), icon: Building2 },
+    { label: "Faturas atrasadas", value: "0", icon: CircleDollarSign },
+  ];
 
   return (
     <main className="min-h-screen bg-[#f4f1eb] text-[#1b2823]">
@@ -37,7 +40,7 @@ export default async function DashboardPage() {
               <h1 className="mt-2 text-3xl font-semibold tracking-[-0.03em]">Administrador</h1>
             </div>
           </header>
-          <div className="grid gap-4 py-8 md:grid-cols-3">
+          <div className="grid gap-4 py-8 md:grid-cols-2">
             {indicators.map((indicator) => (
               <div className="rounded-2xl bg-white p-6 shadow-sm" key={indicator.label}>
                 <div className="flex items-center gap-3 text-sm text-[#1b2823]/55">
