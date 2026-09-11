@@ -90,8 +90,6 @@ export async function createOrganization(formData: FormData) {
     redirect(`/dashboard/clients/new?error=${encodeURIComponent("Não foi possível cadastrar este cliente.")}`);
   }
 
-  await supabase.rpc("ensure_current_month_invoices");
-
   revalidatePath("/dashboard/clients");
   redirect(`/dashboard/clients?success=${encodeURIComponent("Cliente cadastrado com sucesso.")}`);
 }
@@ -126,8 +124,6 @@ export async function updateOrganization(formData: FormData) {
   if (error) {
     redirect(`/dashboard/clients/${encodeURIComponent(id)}/edit?error=${encodeURIComponent("Não foi possível atualizar este cliente.")}`);
   }
-
-  await supabase.rpc("ensure_current_month_invoices");
 
   revalidatePath("/dashboard/clients");
   redirect(`/dashboard/clients?success=${encodeURIComponent("Cliente atualizado com sucesso.")}`);

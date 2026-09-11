@@ -6,7 +6,6 @@ export default async function FinanceiroPage() {
   const { supabase, user, fullName } = await requireRole(["super_admin", "admin", "operator"]);
   const userName = fullName || user.user_metadata?.full_name || user.user_metadata?.name || "Usuário";
 
-  await supabase.rpc("ensure_current_month_invoices");
   const { data: invoices } = await supabase.rpc("list_invoices_for_admin");
 
   return (

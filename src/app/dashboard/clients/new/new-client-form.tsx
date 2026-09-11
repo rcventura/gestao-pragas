@@ -28,6 +28,20 @@ function maskPostalCode(value: string) {
   return onlyDigits(value).slice(0, 8).replace(/(\d{5})(\d)/, "$1-$2");
 }
 
+function maskCurrency(digits: string) {
+  if (!digits) return "";
+  const cents = digits.padStart(3, "0");
+  const intPart = cents.slice(0, -2).replace(/^0+(?=\d)/, "");
+  const decPart = cents.slice(-2);
+  return `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".")},${decPart}`;
+}
+
+function currencyDigitsToDecimal(digits: string) {
+  if (!digits) return "";
+  const cents = digits.padStart(3, "0");
+  return `${parseInt(cents.slice(0, -2), 10)}.${cents.slice(-2)}`;
+}
+
 const inputClass = "mt-2 w-full rounded-xl border border-[#1b2823]/15 bg-[#f8f7f4] px-4 py-3 text-sm outline-none transition focus:border-[#b45432]";
 
 export function NewClientForm() {
@@ -38,6 +52,7 @@ export function NewClientForm() {
   const [loadingPostalCode, setLoadingPostalCode] = useState(false);
   const [postalCodeError, setPostalCodeError] = useState("");
   const [address, setAddress] = useState({ street: "", neighborhood: "", city: "", state: "" });
+  const [billingAmountDigits, setBillingAmountDigits] = useState("");
 
   async function lookupPostalCode(value: string) {
     const digits = onlyDigits(value);
@@ -129,7 +144,15 @@ export function NewClientForm() {
         <div className="mt-5 grid gap-6 sm:grid-cols-2">
           <label className="block text-sm font-medium">
             Valor da mensalidade (R$)
-            <input className={inputClass} name="billing_amount" placeholder="0,00" type="number" step="0.01" min="0" />
+            <input
+              className={inputClass}
+              value={maskCurrency(billingAmountDigits)}
+              onChange={(event) => setBillingAmountDigits(onlyDigits(event.target.value).slice(0, 9))}
+              placeholder="0,00"
+              inputMode="decimal"
+              type="text"
+            />
+            <input name="billing_amount" type="hidden" value={currencyDigitsToDecimal(billingAmountDigits)} />
           </label>
           <label className="block text-sm font-medium">
             Melhor dia para vencimento

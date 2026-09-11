@@ -27,6 +27,25 @@ function onlyDigits(value: string) {
   return value.replace(/\D/g, "");
 }
 
+function maskCurrency(digits: string) {
+  if (!digits) return "";
+  const cents = digits.padStart(3, "0");
+  const intPart = cents.slice(0, -2).replace(/^0+(?=\d)/, "");
+  const decPart = cents.slice(-2);
+  return `${intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".")},${decPart}`;
+}
+
+function currencyDigitsToDecimal(digits: string) {
+  if (!digits) return "";
+  const cents = digits.padStart(3, "0");
+  return `${parseInt(cents.slice(0, -2), 10)}.${cents.slice(-2)}`;
+}
+
+function numberToCurrencyDigits(value: number | null) {
+  if (value === null || value === undefined) return "";
+  return Math.round(value * 100).toString();
+}
+
 export function EditClientForm({ client }: { client: EditableClient }) {
   const [clientType, setClientType] = useState(client.client_type);
   const [document, setDocument] = useState(client.document || "");
@@ -38,6 +57,7 @@ export function EditClientForm({ client }: { client: EditableClient }) {
     city: client.city || "",
     state: client.state || "",
   });
+  const [billingAmountDigits, setBillingAmountDigits] = useState(numberToCurrencyDigits(client.billing_amount));
 
   function maskDocument(value: string) {
     const digits = onlyDigits(value).slice(0, clientType === "individual" ? 11 : 14);
@@ -81,7 +101,15 @@ export function EditClientForm({ client }: { client: EditableClient }) {
         <div className="mt-5 grid gap-6 sm:grid-cols-2">
           <label className="block text-sm font-medium">
             Valor da mensalidade (R$)
-            <input className={inputClass} name="billing_amount" defaultValue={client.billing_amount ?? ""} placeholder="0,00" type="number" step="0.01" min="0" />
+            <input
+              className={inputClass}
+              value={maskCurrency(billingAmountDigits)}
+              onChange={(event) => setBillingAmountDigits(onlyDigits(event.target.value).slice(0, 9))}
+              placeholder="0,00"
+              inputMode="decimal"
+              type="text"
+            />
+            <input name="billing_amount" type="hidden" value={currencyDigitsToDecimal(billingAmountDigits)} />
           </label>
           <label className="block text-sm font-medium">
             Melhor dia para vencimento
