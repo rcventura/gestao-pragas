@@ -5,7 +5,7 @@ import { signOut } from "@/app/actions/auth";
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Clientes", icon: Users, href: "/dashboard/clients" },
-  { label: "Financeiro", icon: CircleDollarSign, href: "/dashboard/finance" },
+  { label: "Financeiro", icon: CircleDollarSign, href: "/dashboard/financeiro" },
 ];
 
 type DashboardSidebarProps = {

@@ -32,11 +32,13 @@ function getOrganizationValues(formData: FormData) {
     state: getValue(formData, "state").toUpperCase(),
     city: getValue(formData, "city"),
     neighborhood: getValue(formData, "neighborhood"),
+    billingAmount: getValue(formData, "billing_amount"),
+    billingDueDay: getValue(formData, "billing_due_day"),
   };
 }
 
 function validateOrganizationValues(values: ReturnType<typeof getOrganizationValues>) {
-  const { name, email, clientType, document, phone, postalCode, street, streetNumber, state, city, neighborhood } = values;
+  const { name, email, clientType, document, phone, postalCode, street, streetNumber, state, city, neighborhood, billingAmount, billingDueDay } = values;
   const tooLong = name.length > 160 || email.length > 320 || document.length > 32 || phone.length > 32 || postalCode.length > 16 || street.length > 160 || streetNumber.length > 32 || city.length > 120 || neighborhood.length > 120;
 
   if (tooLong || !name || !email || !clientType || !document || !phone || !postalCode || !street || !streetNumber || !state || !city || !neighborhood || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !/^[A-Z]{2}$/.test(state)) {
@@ -45,6 +47,16 @@ function validateOrganizationValues(values: ReturnType<typeof getOrganizationVal
 
   if (clientType !== "individual" && clientType !== "company") {
     return "Selecione um tipo de cliente válido.";
+  }
+
+  const parsedAmount = billingAmount ? Number(billingAmount) : null;
+  if (billingAmount && (Number.isNaN(parsedAmount) || parsedAmount! < 0)) {
+    return "Informe um valor de mensalidade válido.";
+  }
+
+  const parsedDueDay = billingDueDay ? Number(billingDueDay) : null;
+  if (billingDueDay && (!Number.isInteger(parsedDueDay) || parsedDueDay! < 1 || parsedDueDay! > 31)) {
+    return "Informe um dia de vencimento entre 1 e 31.";
   }
 
   return null;
@@ -70,11 +82,15 @@ export async function createOrganization(formData: FormData) {
     state: values.state,
     city: values.city,
     neighborhood: values.neighborhood,
+    billing_amount: values.billingAmount ? Number(values.billingAmount) : null,
+    billing_due_day: values.billingDueDay ? Number(values.billingDueDay) : null,
   });
 
   if (error) {
     redirect(`/dashboard/clients/new?error=${encodeURIComponent("Não foi possível cadastrar este cliente.")}`);
   }
+
+  await supabase.rpc("ensure_current_month_invoices");
 
   revalidatePath("/dashboard/clients");
   redirect(`/dashboard/clients?success=${encodeURIComponent("Cliente cadastrado com sucesso.")}`);
@@ -103,11 +119,15 @@ export async function updateOrganization(formData: FormData) {
     target_state: values.state,
     target_city: values.city,
     target_neighborhood: values.neighborhood,
+    target_billing_amount: values.billingAmount ? Number(values.billingAmount) : null,
+    target_billing_due_day: values.billingDueDay ? Number(values.billingDueDay) : null,
   });
 
   if (error) {
     redirect(`/dashboard/clients/${encodeURIComponent(id)}/edit?error=${encodeURIComponent("Não foi possível atualizar este cliente.")}`);
   }
+
+  await supabase.rpc("ensure_current_month_invoices");
 
   revalidatePath("/dashboard/clients");
   redirect(`/dashboard/clients?success=${encodeURIComponent("Cliente atualizado com sucesso.")}`);

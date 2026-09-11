@@ -17,6 +17,8 @@ export type EditableClient = {
   state: string | null;
   city: string | null;
   neighborhood: string | null;
+  billing_amount: number | null;
+  billing_due_day: number | null;
 };
 
 const inputClass = "mt-2 w-full rounded-xl border border-[#1b2823]/15 bg-[#f8f7f4] px-4 py-3 text-sm outline-none transition focus:border-[#b45432]";
@@ -72,6 +74,19 @@ export function EditClientForm({ client }: { client: EditableClient }) {
           <label className="block text-sm font-medium">Estado<input className={inputClass} name="state" value={address.state} onChange={(event) => setAddress({ ...address, state: event.target.value.toUpperCase().slice(0, 2) })} maxLength={2} required /></label>
           <label className="block text-sm font-medium">Cidade<input className={inputClass} name="city" value={address.city} onChange={(event) => setAddress({ ...address, city: event.target.value })} required /></label>
           <label className="block text-sm font-medium">Bairro<input className={inputClass} name="neighborhood" value={address.neighborhood} onChange={(event) => setAddress({ ...address, neighborhood: event.target.value })} required /></label>
+        </div>
+      </fieldset>
+      <fieldset className="mt-8 border-t border-[#1b2823]/10 pt-7">
+        <legend className="text-sm font-semibold">Mensalidade</legend>
+        <div className="mt-5 grid gap-6 sm:grid-cols-2">
+          <label className="block text-sm font-medium">
+            Valor da mensalidade (R$)
+            <input className={inputClass} name="billing_amount" defaultValue={client.billing_amount ?? ""} placeholder="0,00" type="number" step="0.01" min="0" />
+          </label>
+          <label className="block text-sm font-medium">
+            Melhor dia para vencimento
+            <input className={inputClass} name="billing_due_day" defaultValue={client.billing_due_day ?? ""} placeholder="Ex: 10" type="number" min="1" max="31" />
+          </label>
         </div>
       </fieldset>
       <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#1b2823]/10 pt-6 sm:flex-row sm:justify-end">

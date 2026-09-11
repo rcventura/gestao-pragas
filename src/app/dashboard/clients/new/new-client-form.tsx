@@ -124,6 +124,19 @@ export function NewClientForm() {
           </label>
         </div>
       </fieldset>
+      <fieldset className="mt-8 border-t border-[#1b2823]/10 pt-7">
+        <legend className="text-sm font-semibold">Mensalidade</legend>
+        <div className="mt-5 grid gap-6 sm:grid-cols-2">
+          <label className="block text-sm font-medium">
+            Valor da mensalidade (R$)
+            <input className={inputClass} name="billing_amount" placeholder="0,00" type="number" step="0.01" min="0" />
+          </label>
+          <label className="block text-sm font-medium">
+            Melhor dia para vencimento
+            <input className={inputClass} name="billing_due_day" placeholder="Ex: 10" type="number" min="1" max="31" />
+          </label>
+        </div>
+      </fieldset>
       <div className="mt-8 flex flex-col-reverse gap-3 border-t border-[#1b2823]/10 pt-6 sm:flex-row sm:justify-end">
         <Link className="rounded-xl border border-[#1b2823]/15 px-4 py-3 text-center text-sm font-medium text-[#1b2823]/65 hover:bg-[#f8f7f4]" href="/dashboard/clients">Cancelar</Link>
         <button className="cursor-pointer rounded-xl bg-[#1b2823] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#2b3c35]" type="submit">Cadastrar cliente</button>
